@@ -1,7 +1,7 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import path from 'path';
-import { copyTemplate, processAgnosticAssets } from '../utils/fileSystem';
+import { copyTemplate, getAvailablePersonas, processPersonaAssets } from '../utils/fileSystem';
 
 export async function initCommand() {
   p.intro(pc.bgCyan(pc.black(' AI Scaffolding CLI ')));
@@ -22,7 +22,7 @@ export async function initCommand() {
             if (!value) return 'Please enter a project name.';
           },
         }),
-      type: () =>
+      type: (): Promise<string | symbol> =>
         p.select({
           message: 'What type of project is this?',
           options: [
@@ -31,7 +31,7 @@ export async function initCommand() {
             { value: 'fullstack', label: 'Fullstack' },
             { value: 'scripting', label: 'Scripts / Automation' },
             { value: 'general', label: 'General / Other' },
-          ],
+          ] as { value: string; label: string }[],
         }),
       tools: () =>
         p.multiselect({
@@ -42,6 +42,21 @@ export async function initCommand() {
           ],
           required: false,
         }),
+      personas: async () => {
+        const available = (await getAvailablePersonas()).filter((p) => p !== 'agnostic');
+        if (available.length === 0) return [];
+        return p.multiselect({
+          message: 'Select engineering personas to include AI assets for:',
+          options: available.map((name) => ({
+            value: name,
+            label: name
+              .split('-')
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(' '),
+          })),
+          required: false,
+        });
+      },
     },
     {
       onCancel: () => {
@@ -57,7 +72,7 @@ export async function initCommand() {
   const targetPath = path.resolve(process.cwd(), project.path);
   const vars = {
     PROJECT_NAME: project.name,
-    PROJECT_TYPE: project.type,
+    PROJECT_TYPE: project.type as string,
   };
 
   try {
@@ -73,8 +88,14 @@ export async function initCommand() {
       await copyTemplate('antigravity', targetPath, vars);
     }
 
-    // 3. Process agnostic assets (Skills, Prompts, Agents, Instructions)
-    await processAgnosticAssets(targetPath, project.tools as string[]);
+    // 3. Always apply agnostic (base) assets, then any selected personas
+    await processPersonaAssets('agnostic', targetPath, project.tools as string[]);
+
+    // 4. Process persona-specific assets
+    const personas = Array.isArray(project.personas) ? (project.personas as string[]) : [];
+    for (const persona of personas) {
+      await processPersonaAssets(persona, targetPath, project.tools as string[]);
+    }
 
     spinner.stop(pc.green('Successfully scaffolded AI templates!'));
 

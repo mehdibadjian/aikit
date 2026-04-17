@@ -46,117 +46,73 @@ async function processVariables(dir: string, variables: Record<string, string>) 
   }
 }
 
-export async function processAgnosticAssets(
+export async function getAvailablePersonas(): Promise<string[]> {
+  const rootDir = __dirname.includes('dist')
+    ? path.join(__dirname, '..')
+    : path.join(__dirname, '../..');
+  const personasDir = path.join(rootDir, 'templates', 'personas');
+
+  if (!await fs.pathExists(personasDir)) return [];
+
+  const entries = await fs.readdir(personasDir, { withFileTypes: true });
+  return entries.filter((e) => e.isDirectory()).map((e) => e.name);
+}
+
+export async function processPersonaAssets(
+  persona: string,
   targetPath: string,
   tools: string[]
 ) {
-  const rootDir = __dirname.includes('dist') 
-    ? path.join(__dirname, '..') 
+  const rootDir = __dirname.includes('dist')
+    ? path.join(__dirname, '..')
     : path.join(__dirname, '../..');
-  const agnosticDir = path.join(rootDir, 'templates', 'agnostic');
-  
-  if (!await fs.pathExists(agnosticDir)) {
-    return;
-  }
+  const personaDir = path.join(rootDir, 'templates', 'personas', persona);
 
-  // 1. Process Skills
-  const skillsDir = path.join(agnosticDir, 'skills');
-  if (await fs.pathExists(skillsDir)) {
-    const skills = await fs.readdir(skillsDir);
-    for (const skillFile of skills) {
-      if (!skillFile.endsWith('.md')) continue;
-      const skillContent = await fs.readFile(path.join(skillsDir, skillFile), 'utf8');
-      const skillName = path.basename(skillFile, '.md');
+  if (!await fs.pathExists(personaDir)) return;
 
-      // Always write to agnostic .ai/skills/
-      const aiSkillsDir = path.join(targetPath, '.ai', 'skills');
-      await fs.ensureDir(aiSkillsDir);
-      await fs.writeFile(path.join(aiSkillsDir, skillFile), skillContent, 'utf8');
+  const assetTypes = ['skills', 'instructions', 'prompts', 'agents'] as const;
 
-      if (tools.includes('copilot')) {
-        const copilotDir = path.join(targetPath, '.github');
-        await fs.ensureDir(copilotDir);
-        const copilotPath = path.join(copilotDir, 'copilot-instructions.md');
-        let existingContent = '';
-        if (await fs.pathExists(copilotPath)) {
-          existingContent = await fs.readFile(copilotPath, 'utf8');
-        }
-        const newContent = `${existingContent}\n\n## Skill: ${skillName}\n\n${skillContent}`.trim();
-        await fs.writeFile(copilotPath, newContent, 'utf8');
-      }
+  for (const assetType of assetTypes) {
+    const srcDir = path.join(personaDir, assetType);
+    if (!await fs.pathExists(srcDir)) continue;
 
-      if (tools.includes('antigravity')) {
-        const agSkillDir = path.join(targetPath, '.gemini', 'antigravity', 'skills', skillName);
-        await fs.ensureDir(agSkillDir);
-        const agSkillContent = `---\nname: ${skillName}\ndescription: Automatically scaffolded agnostic skill.\n---\n\n${skillContent}`;
-        await fs.writeFile(path.join(agSkillDir, 'SKILL.md'), agSkillContent, 'utf8');
-      }
-    }
-  }
+    const files = await fs.readdir(srcDir);
 
-  // 2. Process Instructions
-  const instDir = path.join(agnosticDir, 'instructions');
-  if (await fs.pathExists(instDir)) {
-    const instructions = await fs.readdir(instDir);
-    for (const file of instructions) {
+    for (const file of files) {
       if (!file.endsWith('.md')) continue;
-      const content = await fs.readFile(path.join(instDir, file), 'utf8');
+
+      const content = await fs.readFile(path.join(srcDir, file), 'utf8');
       const name = path.basename(file, '.md');
 
-      // Always write to agnostic .ai/instructions/
-      const aiInstDir = path.join(targetPath, '.ai', 'instructions');
-      await fs.ensureDir(aiInstDir);
-      await fs.writeFile(path.join(aiInstDir, file), content, 'utf8');
+      // Always write to .ai/<assetType>/
+      const aiDir = path.join(targetPath, '.ai', assetType);
+      await fs.ensureDir(aiDir);
+      await fs.writeFile(path.join(aiDir, file), content, 'utf8');
 
       if (tools.includes('copilot')) {
-        const copilotDir = path.join(targetPath, '.github');
-        await fs.ensureDir(copilotDir);
-        const copilotPath = path.join(copilotDir, 'copilot-instructions.md');
-        let existing = await fs.pathExists(copilotPath) ? await fs.readFile(copilotPath, 'utf8') : '';
-        await fs.writeFile(copilotPath, `${existing}\n\n## Instruction: ${name}\n\n${content}`.trim(), 'utf8');
+        if (assetType === 'agents') {
+          const copilotAgentsDir = path.join(targetPath, '.github', 'copilot-agents');
+          await fs.ensureDir(copilotAgentsDir);
+          await fs.writeFile(path.join(copilotAgentsDir, file), content, 'utf8');
+        } else if (assetType === 'instructions' || assetType === 'skills') {
+          const copilotPath = path.join(targetPath, '.github', 'copilot-instructions.md');
+          await fs.ensureDir(path.dirname(copilotPath));
+          const existing = await fs.pathExists(copilotPath) ? await fs.readFile(copilotPath, 'utf8') : '';
+          const section = assetType === 'skills' ? `Skill: ${name}` : `Instruction: ${name}`;
+          await fs.writeFile(copilotPath, `${existing}\n\n## ${section}\n\n${content}`.trim(), 'utf8');
+        }
       }
 
       if (tools.includes('antigravity')) {
-        const agInstDir = path.join(targetPath, '.gemini', 'antigravity', 'instructions');
-        await fs.ensureDir(agInstDir);
-        await fs.writeFile(path.join(agInstDir, file), content, 'utf8');
-      }
-    }
-  }
-
-  // 3. Process Prompts
-  const promptsDir = path.join(agnosticDir, 'prompts');
-  if (await fs.pathExists(promptsDir)) {
-    const targetPromptsDir = path.join(targetPath, '.ai', 'prompts');
-    await fs.ensureDir(targetPromptsDir);
-    const prompts = await fs.readdir(promptsDir);
-    for (const file of prompts) {
-      if (!file.endsWith('.md')) continue;
-      const content = await fs.readFile(path.join(promptsDir, file), 'utf8');
-      await fs.writeFile(path.join(targetPromptsDir, file), content, 'utf8');
-    }
-  }
-
-  // 4. Process Agents
-  const agentsDir = path.join(agnosticDir, 'agents');
-  if (await fs.pathExists(agentsDir)) {
-    const targetAgentsDir = path.join(targetPath, '.ai', 'agents');
-    await fs.ensureDir(targetAgentsDir);
-    const agents = await fs.readdir(agentsDir);
-    for (const file of agents) {
-      if (!file.endsWith('.md')) continue;
-      const content = await fs.readFile(path.join(agentsDir, file), 'utf8');
-      await fs.writeFile(path.join(targetAgentsDir, file), content, 'utf8');
-      
-      if (tools.includes('copilot')) {
-         await fs.ensureDir(path.join(targetPath, '.github', 'copilot-agents'));
-         await fs.writeFile(path.join(targetPath, '.github', 'copilot-agents', file), content, 'utf8');
-      }
-
-      if (tools.includes('antigravity')) {
-        const agAgentDir = path.join(targetPath, '.gemini', 'antigravity', 'agents');
-        await fs.ensureDir(agAgentDir);
-        await fs.writeFile(path.join(agAgentDir, file), content, 'utf8');
+        if (assetType === 'skills') {
+          const agSkillDir = path.join(targetPath, '.gemini', 'antigravity', 'skills', name);
+          await fs.ensureDir(agSkillDir);
+          await fs.writeFile(path.join(agSkillDir, 'SKILL.md'), content, 'utf8');
+        } else {
+          const agDir = path.join(targetPath, '.gemini', 'antigravity', assetType);
+          await fs.ensureDir(agDir);
+          await fs.writeFile(path.join(agDir, file), content, 'utf8');
+        }
       }
     }
   }
