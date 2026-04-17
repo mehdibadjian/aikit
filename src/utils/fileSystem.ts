@@ -60,7 +60,7 @@ export async function getAllPersonaOptions(): Promise<{ value: string; label: st
   for (const entry of topLevel.filter((e) => e.isDirectory())) {
     const subDir = path.join(personasDir, entry.name);
     const subEntries = await fs.readdir(subDir, { withFileTypes: true });
-    const subPersonas = subEntries.filter((e) => e.isDirectory() && !['agents', 'instructions', 'prompts', 'skills'].includes(e.name));
+    const subPersonas = subEntries.filter((e) => e.isDirectory() && !['agents', 'instructions', 'prompts', 'skills', 'references'].includes(e.name));
 
     if (subPersonas.length > 0) {
       // category with sub-personas (e.g. engineer/fullstack)
@@ -119,23 +119,31 @@ export async function processPersonaAssets(
 
   if (!await fs.pathExists(personaDir)) return;
 
-  const assetTypes = ['skills', 'instructions', 'prompts', 'agents'] as const;
+  const assetTypes = ['skills', 'instructions', 'prompts', 'agents', 'references'] as const;
 
   for (const assetType of assetTypes) {
     const srcDir = path.join(personaDir, assetType);
     if (!await fs.pathExists(srcDir)) continue;
 
-    const files = await fs.readdir(srcDir);
+    const entries = await fs.readdir(srcDir, { withFileTypes: true });
+    const aiDir = path.join(targetPath, '.ai', assetType);
 
-    for (const file of files) {
-      if (!file.endsWith('.md')) continue;
+    for (const entry of entries) {
+      if (entry.name === '.gitkeep') continue;
 
-      const content = await fs.readFile(path.join(srcDir, file), 'utf8');
-
-      // Write to .ai/<assetType>/
-      const aiDir = path.join(targetPath, '.ai', assetType);
-      await fs.ensureDir(aiDir);
-      await fs.writeFile(path.join(aiDir, file), content, 'utf8');
+      if (entry.isDirectory()) {
+        // Copy entire subdirectory (e.g. delivery-workflow/SKILL.md)
+        const srcSubDir = path.join(srcDir, entry.name);
+        const destSubDir = path.join(aiDir, entry.name);
+        await fs.ensureDir(destSubDir);
+        await fs.copy(srcSubDir, destSubDir, {
+          filter: (src) => !src.includes('.DS_Store'),
+        });
+      } else if (entry.name.endsWith('.md')) {
+        const content = await fs.readFile(path.join(srcDir, entry.name), 'utf8');
+        await fs.ensureDir(aiDir);
+        await fs.writeFile(path.join(aiDir, entry.name), content, 'utf8');
+      }
     }
   }
 }
