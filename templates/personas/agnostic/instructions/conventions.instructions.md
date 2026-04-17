@@ -1,3 +1,6 @@
+---
+applyTo: "**"
+---
 # Project Conventions
 
 - Use TypeScript for all logic.

@@ -1,7 +1,7 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import path from 'path';
-import { copyTemplate, getAvailablePersonas, processPersonaAssets } from '../utils/fileSystem';
+import { copyTemplate, getAvailablePersonas, mergeVscodeSettings, processPersonaAssets } from '../utils/fileSystem';
 
 export async function initCommand() {
   p.intro(pc.bgCyan(pc.black(' AI Scaffolding CLI ')));
@@ -79,7 +79,10 @@ export async function initCommand() {
     // 1. Shared context
     await copyTemplate('shared', targetPath, vars);
 
-    // 2. Tools specific
+    // 2. Merge .vscode/settings.json (safe merge — preserves existing user settings)
+    await mergeVscodeSettings(targetPath);
+
+    // 3. Tools specific
     if (project.tools.includes('copilot')) {
       await copyTemplate('copilot', targetPath, vars);
     }
@@ -88,13 +91,13 @@ export async function initCommand() {
       await copyTemplate('antigravity', targetPath, vars);
     }
 
-    // 3. Always apply agnostic (base) assets, then any selected personas
-    await processPersonaAssets('agnostic', targetPath, project.tools as string[]);
+    // 4. Always apply agnostic (base) assets, then any selected personas
+    await processPersonaAssets('agnostic', targetPath);
 
-    // 4. Process persona-specific assets
+    // 5. Process persona-specific assets
     const personas = Array.isArray(project.personas) ? (project.personas as string[]) : [];
     for (const persona of personas) {
-      await processPersonaAssets(persona, targetPath, project.tools as string[]);
+      await processPersonaAssets(persona, targetPath);
     }
 
     spinner.stop(pc.green('Successfully scaffolded AI templates!'));

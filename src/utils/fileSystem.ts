@@ -58,10 +58,32 @@ export async function getAvailablePersonas(): Promise<string[]> {
   return entries.filter((e) => e.isDirectory()).map((e) => e.name);
 }
 
+const VSCODE_AI_SETTINGS = {
+  'chat.instructionsFilesLocations': { '.ai/instructions': true },
+  'chat.promptFilesLocations': { '.ai/prompts': true },
+  'chat.agentFilesLocations': { '.ai/agents': true },
+};
+
+export async function mergeVscodeSettings(targetPath: string) {
+  const settingsPath = path.join(targetPath, '.vscode', 'settings.json');
+  await fs.ensureDir(path.join(targetPath, '.vscode'));
+
+  let existing: Record<string, unknown> = {};
+  if (await fs.pathExists(settingsPath)) {
+    try {
+      existing = JSON.parse(await fs.readFile(settingsPath, 'utf8'));
+    } catch {
+      // malformed JSON — start fresh with merged keys only
+    }
+  }
+
+  const merged = { ...existing, ...VSCODE_AI_SETTINGS };
+  await fs.writeFile(settingsPath, JSON.stringify(merged, null, 2) + '\n', 'utf8');
+}
+
 export async function processPersonaAssets(
   persona: string,
-  targetPath: string,
-  tools: string[]
+  targetPath: string
 ) {
   const rootDir = __dirname.includes('dist')
     ? path.join(__dirname, '..')
@@ -83,17 +105,10 @@ export async function processPersonaAssets(
 
       const content = await fs.readFile(path.join(srcDir, file), 'utf8');
 
-      // Write to .ai/<assetType>/ — single source for all tools
+      // Write to .ai/<assetType>/
       const aiDir = path.join(targetPath, '.ai', assetType);
       await fs.ensureDir(aiDir);
       await fs.writeFile(path.join(aiDir, file), content, 'utf8');
-
-      // Copilot: register agents in .github/copilot-agents/
-      if (tools.includes('copilot') && assetType === 'agents') {
-        const copilotAgentsDir = path.join(targetPath, '.github', 'copilot-agents');
-        await fs.ensureDir(copilotAgentsDir);
-        await fs.writeFile(path.join(copilotAgentsDir, file), content, 'utf8');
-      }
     }
   }
 }
