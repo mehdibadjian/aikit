@@ -22,17 +22,6 @@ export async function initCommand() {
             if (!value) return 'Please enter a project name.';
           },
         }),
-      type: (): Promise<string | symbol> =>
-        p.select({
-          message: 'What type of project is this?',
-          options: [
-            { value: 'frontend', label: 'Frontend / Web App' },
-            { value: 'backend', label: 'Backend API / Service' },
-            { value: 'fullstack', label: 'Fullstack' },
-            { value: 'scripting', label: 'Scripts / Automation' },
-            { value: 'general', label: 'General / Other' },
-          ] as { value: string; label: string }[],
-        }),
       tools: () =>
         p.multiselect({
           message: 'Which AI Tools are you setting up this project for? (Select all that apply)',
@@ -66,7 +55,6 @@ export async function initCommand() {
   const targetPath = path.resolve(process.cwd(), project.path);
   const vars = {
     PROJECT_NAME: project.name,
-    PROJECT_TYPE: project.type as string,
   };
 
   try {
