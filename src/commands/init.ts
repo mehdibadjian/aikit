@@ -79,7 +79,7 @@ export async function initCommand() {
     spinner.stop(pc.green('Successfully scaffolded AI templates!'));
 
     p.note(
-      `Next steps:\n1. Open ${pc.cyan(project.path)} in your editor.\n2. Review the generated AI_CONTEXT.md\n3. Start coding with your AI assistant!`,
+      `Next steps:\n1. Open ${pc.cyan(project.path)} in your editor.\n2. Review the generated files in .ai/\n3. Start coding with your AI assistant!`,
       'Ready to go'
     );
   } catch (error: any) {

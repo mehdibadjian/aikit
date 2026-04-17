@@ -16,8 +16,6 @@ This repository is maintained with specific conventions to maximize GitHub Copil
 - Ensure that you author accompanying tests for any logic you generate.
 - Use explicit assertions and descriptive test titles.
 
-(Please read the AI_CONTEXT.md at the root for a deeper understanding of the specific domains in this codebase.)
-
 ## AI Assets
 This project uses an `.ai/` folder to store reusable AI assets:
 - `.ai/skills/` — Task-specific skill guides. Read the relevant skill file before performing that task.
