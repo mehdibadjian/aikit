@@ -1,7 +1,7 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import path from 'path';
-import { copyTemplate } from '../utils/fileSystem';
+import { copyTemplate, processAgnosticAssets } from '../utils/fileSystem';
 
 export async function initCommand() {
   p.intro(pc.bgCyan(pc.black(' AI Scaffolding CLI ')));
@@ -72,6 +72,9 @@ export async function initCommand() {
     if (project.tools.includes('antigravity')) {
       await copyTemplate('antigravity', targetPath, vars);
     }
+
+    // 3. Process agnostic assets (Skills, Prompts, Agents, Instructions)
+    await processAgnosticAssets(targetPath, project.tools as string[]);
 
     spinner.stop(pc.green('Successfully scaffolded AI templates!'));
 
