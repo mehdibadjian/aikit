@@ -1,10 +1,10 @@
 {
-  "name": "ai-scaffold-cli",
+  "name": "aikit",
   "version": "1.0.0",
   "description": "CLI tool to scaffold AI agents, skills, and prompts for Copilot and Antigravity",
   "main": "dist/index.js",
   "bin": {
-    "ai-scaffold": "./bin/cli.js"
+    "aikit": "./bin/cli.js"
   },
   "files": [
     "bin",

@@ -5,7 +5,7 @@ import packageJson from '../package.json';
 const program = new Command();
 
 program
-  .name('ai-scaffold')
+  .name('aikit')
   .description('Scaffolds specialized AI prompts, agents, and skills into your project.')
   .version(packageJson.version);
 
