@@ -82,37 +82,17 @@ export async function processPersonaAssets(
       if (!file.endsWith('.md')) continue;
 
       const content = await fs.readFile(path.join(srcDir, file), 'utf8');
-      const name = path.basename(file, '.md');
 
-      // Always write to .ai/<assetType>/
+      // Write to .ai/<assetType>/ — single source for all tools
       const aiDir = path.join(targetPath, '.ai', assetType);
       await fs.ensureDir(aiDir);
       await fs.writeFile(path.join(aiDir, file), content, 'utf8');
 
-      if (tools.includes('copilot')) {
-        if (assetType === 'agents') {
-          const copilotAgentsDir = path.join(targetPath, '.github', 'copilot-agents');
-          await fs.ensureDir(copilotAgentsDir);
-          await fs.writeFile(path.join(copilotAgentsDir, file), content, 'utf8');
-        } else if (assetType === 'instructions' || assetType === 'skills') {
-          const copilotPath = path.join(targetPath, '.github', 'copilot-instructions.md');
-          await fs.ensureDir(path.dirname(copilotPath));
-          const existing = await fs.pathExists(copilotPath) ? await fs.readFile(copilotPath, 'utf8') : '';
-          const section = assetType === 'skills' ? `Skill: ${name}` : `Instruction: ${name}`;
-          await fs.writeFile(copilotPath, `${existing}\n\n## ${section}\n\n${content}`.trim(), 'utf8');
-        }
-      }
-
-      if (tools.includes('antigravity')) {
-        if (assetType === 'skills') {
-          const agSkillDir = path.join(targetPath, '.gemini', 'antigravity', 'skills', name);
-          await fs.ensureDir(agSkillDir);
-          await fs.writeFile(path.join(agSkillDir, 'SKILL.md'), content, 'utf8');
-        } else {
-          const agDir = path.join(targetPath, '.gemini', 'antigravity', assetType);
-          await fs.ensureDir(agDir);
-          await fs.writeFile(path.join(agDir, file), content, 'utf8');
-        }
+      // Copilot: register agents in .github/copilot-agents/
+      if (tools.includes('copilot') && assetType === 'agents') {
+        const copilotAgentsDir = path.join(targetPath, '.github', 'copilot-agents');
+        await fs.ensureDir(copilotAgentsDir);
+        await fs.writeFile(path.join(copilotAgentsDir, file), content, 'utf8');
       }
     }
   }
