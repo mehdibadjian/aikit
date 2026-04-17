@@ -1,0 +1,33 @@
+{
+  "name": "ai-scaffold-cli",
+  "version": "1.0.0",
+  "description": "CLI tool to scaffold AI agents, skills, and prompts for Copilot and Antigravity",
+  "main": "dist/index.js",
+  "bin": {
+    "ai-scaffold": "./bin/cli.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node ./bin/cli.js",
+    "lint": "eslint src",
+    "format": "prettier --write .",
+    "test": "tsx test.ts"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "commander": "^12.0.0",
+    "fs-extra": "^11.2.0",
+    "picocolors": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.12.7",
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "@typescript-eslint/parser": "^7.8.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5"
+  }
+}
