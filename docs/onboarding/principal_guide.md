@@ -28,13 +28,29 @@ sequenceDiagram
     participant CLI as src/commands/init.ts
     participant FS as src/utils/fileSystem.ts
     participant Templates as templates/
-    
+
     User->>CLI: pnpm start
     CLI->>User: Prompts for Project Variables
-    User-->>CLI: (Name, Type, Tools)
-    CLI->>FS: copyTemplate(tool, dest, vars)
-    FS->>Templates: Read Base Assets
-    Templates-->>FS: Return Raw Content
-    FS->>FS: Interpolate {{PROJECT_NAME}}
-    FS->>User: Writes Scaffolded Output
+    User-->>CLI: (Name, Type, Tools, Personas)
+    CLI->>FS: copyTemplate('shared', dest, vars)
+    FS->>Templates: Read shared assets
+    Templates-->>FS: Return raw content
+    FS->>FS: Interpolate {{PROJECT_NAME}} / {{PROJECT_TYPE}}
+    FS->>User: Write AI_CONTEXT.md
+
+    CLI->>FS: copyTemplate('copilot' | 'antigravity', dest, vars)
+    FS->>Templates: Read tool-specific assets
+    Templates-->>FS: Return raw content
+    FS->>User: Write tool configs (.github/, .gemini/)
+
+    CLI->>FS: processPersonaAssets('agnostic', dest, tools)
+    FS->>Templates: Read personas/agnostic/{skills,agents,prompts,instructions}
+    Templates-->>FS: Return asset files
+    FS->>User: Write to .ai/{skills,agents,prompts,instructions}/
+    Note over FS,User: Agents also written to .github/copilot-agents/ if Copilot selected
+
+    CLI->>FS: processPersonaAssets(selectedPersona, dest, tools)
+    FS->>Templates: Read personas/<persona>/{skills,agents,prompts,instructions}
+    Templates-->>FS: Return persona-specific assets
+    FS->>User: Layer into .ai/ folder
 ```

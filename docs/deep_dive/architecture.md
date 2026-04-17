@@ -8,10 +8,20 @@ The repository is built around strict separation of concerns, divided generally 
 This directory strictly handles user context gathering. It takes terminal inputs, parses choices, and yields a variable context object to the rest of the application. It has zero knowledge of *how* templates are built, just *what* variables should be collected.
 
 ### `src/utils/`
-This holds generic utilities completely decoupled from the product state. The primary engine (`copyTemplate` and `processAgnosticAssets`) belongs here. It takes a generic target directory and dictionary of key-value pairs, injecting those variables into any targeted Markdown templates recursively.
+This holds generic utilities completely decoupled from the product state. The primary engines (`copyTemplate`, `processPersonaAssets`) belong here. They take a generic target directory and dictionary of key-value pairs, injecting those variables into any targeted Markdown templates recursively.
 
 ### `templates/`
 The asset tree. Files placed here are completely statically defined but retain embedded string interpolations like `{{PROJECT_NAME}}`. They are divided into logically partitioned domains:
-- `templates/shared/`
-- `templates/copilot/`
-- `templates/antigravity/`
+- `templates/shared/` — Tool-agnostic base assets, e.g. `AI_CONTEXT.md`.
+- `templates/copilot/` — GitHub Copilot-specific configs, e.g. `.github/copilot-instructions.md`.
+- `templates/antigravity/` — Google Antigravity-specific configs.
+- `templates/personas/` — Role-based asset sets. Each persona subfolder (e.g. `agnostic/`, `frontend-engineer/`, `backend-engineer/`) contains `skills/`, `agents/`, `prompts/`, and `instructions/` directories.
+
+### Output: `.ai/` Folder Convention
+All persona assets (skills, agents, prompts, instructions) are written into a unified `.ai/` folder at the target path, making them accessible to any AI toolchain:
+- `.ai/skills/`
+- `.ai/agents/`
+- `.ai/prompts/`
+- `.ai/instructions/`
+
+When GitHub Copilot is selected, agents are additionally registered in `.github/copilot-agents/`.
