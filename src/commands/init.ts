@@ -91,10 +91,7 @@ export async function initCommand() {
       await copyTemplate('antigravity', targetPath, vars);
     }
 
-    // 4. Always apply agnostic (base) assets, then any selected personas
-    await processPersonaAssets('agnostic', targetPath);
-
-    // 5. Process persona-specific assets
+    // 4. Process selected persona assets
     const personas = Array.isArray(project.personas) ? (project.personas as string[]) : [];
     for (const persona of personas) {
       await processPersonaAssets(persona, targetPath);
