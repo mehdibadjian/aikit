@@ -28,16 +28,17 @@ export async function initCommand() {
           options: [
             { value: 'copilot', label: 'GitHub Copilot' },
             { value: 'antigravity', label: 'Google Antigravity' },
+            { value: '__skip__', label: 'Skip' },
           ],
-          required: false,
+          required: true,
         }),
       personas: async () => {
         const options = await getAllPersonaOptions();
         if (options.length === 0) return [];
         return p.multiselect({
           message: 'Select team personas to include AI assets for:',
-          options,
-          required: false,
+          options: [...options, { value: '__skip__', label: 'Skip' }],
+          required: true,
         });
       },
     },
@@ -74,7 +75,7 @@ export async function initCommand() {
     }
 
     // 4. Process selected persona assets (values are relative paths like "engineer/fullstack" or "delivery-lead")
-    const personas = Array.isArray(project.personas) ? (project.personas as string[]) : [];
+    const personas = (Array.isArray(project.personas) ? (project.personas as string[]) : []).filter(p => p !== '__skip__');
     for (const persona of personas) {
       await processPersonaAssets(persona, targetPath);
     }
