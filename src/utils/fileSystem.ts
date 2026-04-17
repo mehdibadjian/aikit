@@ -46,7 +46,7 @@ async function processVariables(dir: string, variables: Record<string, string>) 
   }
 }
 
-export async function getAvailablePersonas(): Promise<string[]> {
+export async function getAllPersonaOptions(): Promise<{ value: string; label: string }[]> {
   const rootDir = __dirname.includes('dist')
     ? path.join(__dirname, '..')
     : path.join(__dirname, '../..');
@@ -54,20 +54,34 @@ export async function getAvailablePersonas(): Promise<string[]> {
 
   if (!await fs.pathExists(personasDir)) return [];
 
-  const entries = await fs.readdir(personasDir, { withFileTypes: true });
-  return entries.filter((e) => e.isDirectory()).map((e) => e.name);
+  const options: { value: string; label: string }[] = [];
+  const topLevel = await fs.readdir(personasDir, { withFileTypes: true });
+
+  for (const entry of topLevel.filter((e) => e.isDirectory())) {
+    const subDir = path.join(personasDir, entry.name);
+    const subEntries = await fs.readdir(subDir, { withFileTypes: true });
+    const subPersonas = subEntries.filter((e) => e.isDirectory() && !['agents', 'instructions', 'prompts', 'skills'].includes(e.name));
+
+    if (subPersonas.length > 0) {
+      // category with sub-personas (e.g. engineer/fullstack)
+      for (const sub of subPersonas) {
+        const label = `${capitalise(entry.name)} · ${capitalise(sub.name)}`;
+        options.push({ value: `${entry.name}/${sub.name}`, label });
+      }
+    } else {
+      // flat persona (e.g. delivery-lead)
+      options.push({
+        value: entry.name,
+        label: entry.name.split('-').map(capitalise).join(' '),
+      });
+    }
+  }
+
+  return options;
 }
 
-export async function getEngineerSubPersonas(): Promise<string[]> {
-  const rootDir = __dirname.includes('dist')
-    ? path.join(__dirname, '..')
-    : path.join(__dirname, '../..');
-  const engineerDir = path.join(rootDir, 'templates', 'personas', 'engineer');
-
-  if (!await fs.pathExists(engineerDir)) return [];
-
-  const entries = await fs.readdir(engineerDir, { withFileTypes: true });
-  return entries.filter((e) => e.isDirectory()).map((e) => e.name);
+function capitalise(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 const VSCODE_AI_SETTINGS = {
