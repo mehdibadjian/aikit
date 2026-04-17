@@ -16,7 +16,18 @@ A powerful, interactive CLI tool built to easily scaffold generic context, Copil
 - `templates/` - Holds all raw scaffold files ready to inject.
 - `dist/` - Bundled output created via `tsup`.
 
-## 💻 Installation & Usage
+## 💻 Quick Start (No Clone Required)
+
+If you just want to use the CLI without modifying it, you can run it directly from this GitHub repository using `npx`:
+
+```bash
+npx mehdibadjian/aikit
+# (Note: This will download, build, and execute the CLI automatically)
+```
+
+## 🛠 Local Development & Installation
+
+If you want to contribute, modify the templates locally, or build from source:
 
 1. **Install Dependencies:**
    This project uses `pnpm`. Install everything via:
@@ -29,11 +40,22 @@ A powerful, interactive CLI tool built to easily scaffold generic context, Copil
    pnpm run build
    ```
 
-3. **Run the CLI:**
+3. **Global CLI Setup (Optional):**
+   To run `ai-scaffold` from anywhere, you can link the package globally:
+   ```bash
+   pnpm link --global
+   # or with npm
+   npm link
+   ```
+   Now you can scaffold projects anywhere by running:
+   ```bash
+   ai-scaffold init
+   ```
+
+4. **Run Locally:**
+   If you didn't link the package globally, you can run it via:
    ```bash
    pnpm start
-   # or (if linked globally)
-   ai-scaffold init
    ```
 
 ## 🧪 Testing

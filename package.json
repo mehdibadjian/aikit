@@ -12,7 +12,8 @@
     "start": "node ./bin/cli.js",
     "lint": "eslint src",
     "format": "prettier --write .",
-    "test": "tsx test.ts"
+    "test": "tsx test.ts",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",
