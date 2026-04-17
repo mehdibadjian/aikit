@@ -4,11 +4,11 @@ A powerful, interactive CLI tool built to scaffold AI assets — skills, agents,
 
 ## 🚀 Features
 - **Prompt Driven:** Beautiful interactive terminal UI powered by `@clack/prompts`.
-- **Parametrized Templates:** Embeds project name, type, and custom variables directly into `.md` files dynamically.
-- **`.ai/` Folder Convention:** Writes all AI assets into a unified `.ai/skills/`, `.ai/agents/`, `.ai/prompts/`, and `.ai/instructions/` structure.
-- **GitHub Copilot Integration:** Injects `.github/copilot-instructions.md` and registers agents in `.github/copilot-agents/`.
-- **Google Antigravity Integration:** Sets up `.gemini/antigravity/skills/` templates.
-- **Engineering Personas:** Optionally scaffold role-specific AI assets for personas like `frontend-engineer` or `backend-engineer`.
+- **Parametrized Templates:** Embeds project name and custom variables directly into `.md` files dynamically.
+- **`.ai/` Folder Convention:** Writes all AI assets into a unified `.ai/skills/`, `.ai/agents/`, `.ai/prompts/`, `.ai/instructions/`, and `.ai/references/` structure.
+- **GitHub Copilot Integration:** Injects `.github/copilot-instructions.md`, registers agents in `.github/copilot-agents/`, and auto-configures `.vscode/settings.json` to point Copilot at your `.ai/` directories.
+- **Google Antigravity Integration:** Sets up `.gemini/skills/`, converts prompts to `.gemini/commands/` TOML files, and merges `.gemini/settings.json`.
+- **Team Personas:** Dynamically discover and scaffold role-specific AI assets from `templates/personas/` — supports category-grouped personas (e.g. `Engineer · Fullstack`, `Delivery Lead`).
 - **Global Context:** Adds `AI_CONTEXT.md` explicitly mapping architectural guidelines.
 
 ## 🛠 File Structure
@@ -19,7 +19,7 @@ A powerful, interactive CLI tool built to scaffold AI assets — skills, agents,
   - `templates/shared/` - Tool-agnostic base assets (e.g. `AI_CONTEXT.md`).
   - `templates/copilot/` - GitHub Copilot-specific assets.
   - `templates/antigravity/` - Google Antigravity-specific assets.
-  - `templates/personas/` - Role-based AI asset sets (e.g. `agnostic/`, `frontend-engineer/`, `backend-engineer/`).
+  - `templates/personas/` - Role-based AI asset sets. Each persona (e.g. `delivery-lead/`, `engineer/fullstack/`) contains `skills/`, `agents/`, `prompts/`, `instructions/`, and `references/` subdirectories.
 - `dist/` - Bundled output created via `tsup`.
 
 ## 💻 Quick Start (No Clone Required)
@@ -31,7 +31,7 @@ npx mehdibadjian/aikit
 # (Note: This will download, build, and execute the CLI automatically)
 ```
 
-The CLI will prompt you for your project name, type, AI tools, and optional engineering personas, then scaffold the assets into your project.
+The CLI will prompt you for your project name, AI tools, and optional team personas, then scaffold the assets into your project.
 
 ## 🛠 Local Development & Installation
 
@@ -49,7 +49,7 @@ If you want to contribute, modify the templates locally, or build from source:
    ```
 
 3. **Global CLI Setup (Optional):**
-   To run `ai-scaffold` from anywhere, you can link the package globally:
+   To run `aikit` from anywhere, you can link the package globally:
    ```bash
    pnpm link --global
    # or with npm
@@ -57,7 +57,7 @@ If you want to contribute, modify the templates locally, or build from source:
    ```
    Now you can scaffold projects anywhere by running:
    ```bash
-   ai-scaffold init
+   aikit init
    ```
 
 4. **Run Locally:**

@@ -29,28 +29,35 @@ sequenceDiagram
     participant FS as src/utils/fileSystem.ts
     participant Templates as templates/
 
-    User->>CLI: pnpm start
+    User->>CLI: aikit init
     CLI->>User: Prompts for Project Variables
-    User-->>CLI: (Name, Type, Tools, Personas)
+    User-->>CLI: (Name, Tools, Personas)
     CLI->>FS: copyTemplate('shared', dest, vars)
     FS->>Templates: Read shared assets
     Templates-->>FS: Return raw content
-    FS->>FS: Interpolate {{PROJECT_NAME}} / {{PROJECT_TYPE}}
+    FS->>FS: Interpolate {{PROJECT_NAME}}
     FS->>User: Write AI_CONTEXT.md
 
-    CLI->>FS: copyTemplate('copilot' | 'antigravity', dest, vars)
+    CLI->>FS: copyTemplate('copilot', dest, vars)
     FS->>Templates: Read tool-specific assets
     Templates-->>FS: Return raw content
-    FS->>User: Write tool configs (.github/, .gemini/)
+    FS->>User: Write .github/copilot-instructions.md + agents
+    CLI->>FS: mergeVscodeSettings(dest)
+    FS->>User: Merge .vscode/settings.json (chat.*FilesLocations)
 
-    CLI->>FS: processPersonaAssets('agnostic', dest, tools)
-    FS->>Templates: Read personas/agnostic/{skills,agents,prompts,instructions}
-    Templates-->>FS: Return asset files
-    FS->>User: Write to .ai/{skills,agents,prompts,instructions}/
-    Note over FS,User: Agents also written to .github/copilot-agents/ if Copilot selected
+    CLI->>FS: copyTemplate('antigravity', dest, vars)
+    FS->>Templates: Read Antigravity assets
+    Templates-->>FS: Return raw content
+    FS->>User: Write .gemini/ assets
+    CLI->>FS: mergeGeminiSettings(dest)
+    FS->>User: Merge .gemini/settings.json
+    CLI->>FS: mirrorSharedSkillsToGemini(dest)
+    FS->>User: Copy .ai/skills/ → .gemini/skills/
 
     CLI->>FS: processPersonaAssets(selectedPersona, dest, tools)
-    FS->>Templates: Read personas/<persona>/{skills,agents,prompts,instructions}
+    FS->>Templates: Read personas/<persona>/{skills,agents,prompts,instructions,references}
     Templates-->>FS: Return persona-specific assets
     FS->>User: Layer into .ai/ folder
+    Note over FS,User: Agents also written to .github/copilot-agents/ if Copilot selected
+    Note over FS,User: Prompts converted to .toml → .gemini/commands/ if Antigravity selected
 ```

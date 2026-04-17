@@ -16,7 +16,7 @@ The main entry flow of the CLI application begins at `src/commands/init.ts`.
   - `templates/shared/` — Tool-agnostic base assets.
   - `templates/copilot/` — GitHub Copilot-specific assets.
   - `templates/antigravity/` — Google Antigravity assets.
-  - `templates/personas/` — Role-based asset sets (`agnostic/`, `frontend-engineer/`, `backend-engineer/`, etc.), each containing `skills/`, `agents/`, `prompts/`, and `instructions/` subdirectories.
+  - `templates/personas/` — Role-based asset sets. Top-level folders are either flat personas (e.g. `delivery-lead/`) or category folders containing sub-personas (e.g. `engineer/fullstack/`). Each persona contains `skills/`, `agents/`, `prompts/`, `instructions/`, and `references/` subdirectories.
 
 ## Part III: Developer Setup
 1. **Bootstrap the toolkit:** Run `pnpm install` in your terminal to fetch the Node.js dependencies.
@@ -25,9 +25,10 @@ The main entry flow of the CLI application begins at `src/commands/init.ts`.
 
 ## Appendix: Glossary
 - **Scaffolding:** The process of bootstrapping automated boilerplate into a blank or pre-existing project.
-- **Agnostic Assets:** Files or configurations that apply universally across all AI tools, like a global `AI_CONTEXT.md` or the base persona assets.
-- **`.ai/` Folder:** The unified output directory for all AI assets (`skills/`, `agents/`, `prompts/`, `instructions/`), readable by any AI assistant regardless of tool vendor.
-- **Persona:** A role-specific collection of AI assets (e.g. `frontend-engineer`, `backend-engineer`). The `agnostic` persona is always applied as a base layer.
+- **`.ai/` Folder:** The unified output directory for all AI assets (`skills/`, `agents/`, `prompts/`, `instructions/`, `references/`), readable by any AI assistant regardless of tool vendor.
+- **Persona:** A role-specific collection of AI assets (e.g. `delivery-lead`, `engineer/fullstack`). Selected personas are layered directly into `.ai/` at scaffold time.
 - **Github Copilot Instructions:** A hidden file `.github/copilot-instructions.md` designed to give inline models system instructions.
 - **Copilot Agents:** Agent markdown files registered in `.github/copilot-agents/` for Copilot to discover and use as specialized sub-agents.
-- **Google Antigravity Skills:** Reusable tools, scripts, and workflows found in `.gemini/antigravity/skills/` meant to supercharge conversational and agentic workflows.
+- **VSCode Settings Merge:** Auto-patching of `.vscode/settings.json` to register `.ai/instructions/`, `.ai/prompts/`, and `.ai/agents/` with Copilot's file-location settings.
+- **Google Antigravity Commands:** Prompt files converted to `.toml` format under `.gemini/commands/` for use as slash commands in the Gemini CLI.
+- **Google Antigravity Skills:** Reusable skill files placed in `.gemini/skills/` to supercharge Gemini agentic workflows.

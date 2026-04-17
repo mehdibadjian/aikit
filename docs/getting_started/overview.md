@@ -4,9 +4,9 @@ aikit is a powerful, interactive CLI tool built to scaffold AI assets — skills
 
 ## Key Features
 - **Prompt Driven:** Beautiful interactive terminal UI powered by `@clack/prompts`.
-- **Parametrized Templates:** Embeds project name, type, and custom variables directly into `.md` files dynamically.
-- **`.ai/` Folder Convention:** All AI assets land in a unified `.ai/skills/`, `.ai/agents/`, `.ai/prompts/`, and `.ai/instructions/` structure — tool-agnostic and usable by any AI assistant.
-- **GitHub Copilot Integration:** Injects `.github/copilot-instructions.md` and registers agents in `.github/copilot-agents/`.
-- **Google Antigravity Integration:** Sets up `.gemini/antigravity/skills/` templates.
-- **Engineering Personas:** Optionally scaffold role-specific AI assets for personas like `frontend-engineer` or `backend-engineer` on top of the agnostic base.
+- **Parametrized Templates:** Embeds project name and custom variables directly into `.md` files dynamically.
+- **`.ai/` Folder Convention:** All AI assets land in a unified `.ai/skills/`, `.ai/agents/`, `.ai/prompts/`, `.ai/instructions/`, and `.ai/references/` structure — tool-agnostic and usable by any AI assistant.
+- **GitHub Copilot Integration:** Injects `.github/copilot-instructions.md`, registers agents in `.github/copilot-agents/`, and auto-configures `.vscode/settings.json` to point Copilot's instruction, prompt, and agent file locations at your `.ai/` directories.
+- **Google Antigravity Integration:** Sets up `.gemini/skills/`, converts prompt files to `.gemini/commands/` TOML entries for the Gemini CLI, and merges `.gemini/settings.json`.
+- **Team Personas:** Dynamically discovers persona folders from `templates/personas/` — supports flat personas (e.g. `Delivery Lead`) and category-grouped personas (e.g. `Engineer · Fullstack`). The selected personas are layered into `.ai/` at scaffold time.
 - **Global Context:** Adds `AI_CONTEXT.md` explicitly mapping architectural guidelines.
