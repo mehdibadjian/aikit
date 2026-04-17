@@ -12,7 +12,7 @@ export async function copyTemplate(
   const templateDir = path.join(rootDir, 'templates', templateName);
   
   if (!await fs.pathExists(templateDir)) {
-    throw new Error(`Template directory not found: ${templateDir}`);
+    return; // template dir absent or empty — skip silently
   }
 
   // Copy everything directly to target path

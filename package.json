@@ -6,6 +6,11 @@
   "bin": {
     "ai-scaffold": "./bin/cli.js"
   },
+  "files": [
+    "bin",
+    "dist",
+    "templates"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
