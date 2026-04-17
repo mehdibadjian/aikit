@@ -1,7 +1,7 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import path from 'path';
-import { copyTemplate, getAllPersonaOptions, mergeVscodeSettings, processPersonaAssets } from '../utils/fileSystem';
+import { copyTemplate, getAllPersonaOptions, mergeGeminiSettings, mergeVscodeSettings, mirrorSharedSkillsToGemini, processPersonaAssets } from '../utils/fileSystem';
 
 export async function initCommand() {
   p.intro(pc.bgCyan(pc.black(' AI Scaffolding CLI ')));
@@ -62,28 +62,35 @@ export async function initCommand() {
     // 1. Shared context
     await copyTemplate('shared', targetPath, vars);
 
-    // 2. Merge .vscode/settings.json (safe merge — preserves existing user settings)
-    await mergeVscodeSettings(targetPath);
+    // 2. Tool-specific templates + settings
+    const tools = (project.tools as string[]).filter(t => t !== '__skip__');
 
-    // 3. Tools specific
-    if (project.tools.includes('copilot')) {
+    if (tools.includes('copilot')) {
       await copyTemplate('copilot', targetPath, vars);
-    }
-    
-    if (project.tools.includes('antigravity')) {
-      await copyTemplate('antigravity', targetPath, vars);
+      await mergeVscodeSettings(targetPath);
     }
 
-    // 4. Process selected persona assets (values are relative paths like "engineer/fullstack" or "delivery-lead")
+    if (tools.includes('antigravity')) {
+      await copyTemplate('antigravity', targetPath, vars);
+      await mergeGeminiSettings(targetPath);
+      await mirrorSharedSkillsToGemini(targetPath);
+    }
+
+    // 3. Process selected persona assets into the correct tool paths
     const personas = (Array.isArray(project.personas) ? (project.personas as string[]) : []).filter(p => p !== '__skip__');
     for (const persona of personas) {
-      await processPersonaAssets(persona, targetPath);
+      await processPersonaAssets(persona, targetPath, tools);
     }
 
     spinner.stop(pc.green('Successfully scaffolded AI templates!'));
 
+    const aiPaths = [
+      ...(tools.includes('copilot') ? ['.ai/ and .github/'] : []),
+      ...(tools.includes('antigravity') ? ['.gemini/'] : []),
+    ].join(' · ') || '.ai/';
+
     p.note(
-      `Next steps:\n1. Open ${pc.cyan(project.path)} in your editor.\n2. Review the generated files in .ai/\n3. Start coding with your AI assistant!`,
+      `Next steps:\n1. Open ${pc.cyan(project.path)} in your editor.\n2. Review the generated files in ${aiPaths}\n3. Start coding with your AI assistant!`,
       'Ready to go'
     );
   } catch (error: any) {
