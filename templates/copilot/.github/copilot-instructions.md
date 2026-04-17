@@ -17,3 +17,10 @@ This repository is maintained with specific conventions to maximize GitHub Copil
 - Use explicit assertions and descriptive test titles.
 
 (Please read the AI_CONTEXT.md at the root for a deeper understanding of the specific domains in this codebase.)
+
+## AI Assets
+This project uses an `.ai/` folder to store reusable AI assets:
+- `.ai/skills/` — Task-specific skill guides. Read the relevant skill file before performing that task.
+- `.ai/instructions/` — Coding conventions and project-specific rules. Always follow these.
+- `.ai/agents/` — Specialized agent personas for specific workflows.
+- `.ai/prompts/` — Reusable prompt templates.

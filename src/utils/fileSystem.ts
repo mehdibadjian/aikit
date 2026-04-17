@@ -67,7 +67,12 @@ export async function processAgnosticAssets(
       if (!skillFile.endsWith('.md')) continue;
       const skillContent = await fs.readFile(path.join(skillsDir, skillFile), 'utf8');
       const skillName = path.basename(skillFile, '.md');
-      
+
+      // Always write to agnostic .ai/skills/
+      const aiSkillsDir = path.join(targetPath, '.ai', 'skills');
+      await fs.ensureDir(aiSkillsDir);
+      await fs.writeFile(path.join(aiSkillsDir, skillFile), skillContent, 'utf8');
+
       if (tools.includes('copilot')) {
         const copilotDir = path.join(targetPath, '.github');
         await fs.ensureDir(copilotDir);
@@ -97,10 +102,25 @@ export async function processAgnosticAssets(
       if (!file.endsWith('.md')) continue;
       const content = await fs.readFile(path.join(instDir, file), 'utf8');
       const name = path.basename(file, '.md');
-      
-      const contextPath = path.join(targetPath, 'AI_CONTEXT.md');
-      let existing = await fs.pathExists(contextPath) ? await fs.readFile(contextPath, 'utf8') : '';
-      await fs.writeFile(contextPath, `${existing}\n\n## Instruction: ${name}\n\n${content}`.trim(), 'utf8');
+
+      // Always write to agnostic .ai/instructions/
+      const aiInstDir = path.join(targetPath, '.ai', 'instructions');
+      await fs.ensureDir(aiInstDir);
+      await fs.writeFile(path.join(aiInstDir, file), content, 'utf8');
+
+      if (tools.includes('copilot')) {
+        const copilotDir = path.join(targetPath, '.github');
+        await fs.ensureDir(copilotDir);
+        const copilotPath = path.join(copilotDir, 'copilot-instructions.md');
+        let existing = await fs.pathExists(copilotPath) ? await fs.readFile(copilotPath, 'utf8') : '';
+        await fs.writeFile(copilotPath, `${existing}\n\n## Instruction: ${name}\n\n${content}`.trim(), 'utf8');
+      }
+
+      if (tools.includes('antigravity')) {
+        const agInstDir = path.join(targetPath, '.gemini', 'antigravity', 'instructions');
+        await fs.ensureDir(agInstDir);
+        await fs.writeFile(path.join(agInstDir, file), content, 'utf8');
+      }
     }
   }
 
@@ -131,6 +151,12 @@ export async function processAgnosticAssets(
       if (tools.includes('copilot')) {
          await fs.ensureDir(path.join(targetPath, '.github', 'copilot-agents'));
          await fs.writeFile(path.join(targetPath, '.github', 'copilot-agents', file), content, 'utf8');
+      }
+
+      if (tools.includes('antigravity')) {
+        const agAgentDir = path.join(targetPath, '.gemini', 'antigravity', 'agents');
+        await fs.ensureDir(agAgentDir);
+        await fs.writeFile(path.join(agAgentDir, file), content, 'utf8');
       }
     }
   }
