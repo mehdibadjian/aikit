@@ -1,7 +1,7 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import path from 'path';
-import { copyTemplate, getAvailablePersonas, mergeVscodeSettings, processPersonaAssets } from '../utils/fileSystem';
+import { copyTemplate, getAvailablePersonas, getEngineerSubPersonas, mergeVscodeSettings, processPersonaAssets } from '../utils/fileSystem';
 
 export async function initCommand() {
   p.intro(pc.bgCyan(pc.black(' AI Scaffolding CLI ')));
@@ -43,16 +43,33 @@ export async function initCommand() {
           required: false,
         }),
       personas: async () => {
-        const available = (await getAvailablePersonas()).filter((p) => p !== 'agnostic');
+        const available = await getAvailablePersonas();
         if (available.length === 0) return [];
         return p.multiselect({
-          message: 'Select engineering personas to include AI assets for:',
+          message: 'Select team personas to include AI assets for:',
           options: available.map((name) => ({
             value: name,
             label: name
               .split('-')
               .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
               .join(' '),
+          })),
+          required: false,
+        });
+      },
+      engineerSpecializations: async ({ results }) => {
+        const personas = results.personas as string[] | symbol;
+        if (
+          !Array.isArray(personas) ||
+          !personas.includes('engineer')
+        ) return [];
+        const subs = await getEngineerSubPersonas();
+        if (subs.length === 0) return [];
+        return p.multiselect({
+          message: 'Select engineer specializations:',
+          options: subs.map((name) => ({
+            value: name,
+            label: name.charAt(0).toUpperCase() + name.slice(1),
           })),
           required: false,
         });
@@ -94,7 +111,17 @@ export async function initCommand() {
     // 4. Process selected persona assets
     const personas = Array.isArray(project.personas) ? (project.personas as string[]) : [];
     for (const persona of personas) {
-      await processPersonaAssets(persona, targetPath);
+      if (persona === 'engineer') {
+        // engineer is a category — process selected specializations
+        const subs = Array.isArray(project.engineerSpecializations)
+          ? (project.engineerSpecializations as string[])
+          : [];
+        for (const sub of subs) {
+          await processPersonaAssets(`engineer/${sub}`, targetPath);
+        }
+      } else {
+        await processPersonaAssets(persona, targetPath);
+      }
     }
 
     spinner.stop(pc.green('Successfully scaffolded AI templates!'));

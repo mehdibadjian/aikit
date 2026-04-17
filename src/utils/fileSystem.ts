@@ -58,6 +58,18 @@ export async function getAvailablePersonas(): Promise<string[]> {
   return entries.filter((e) => e.isDirectory()).map((e) => e.name);
 }
 
+export async function getEngineerSubPersonas(): Promise<string[]> {
+  const rootDir = __dirname.includes('dist')
+    ? path.join(__dirname, '..')
+    : path.join(__dirname, '../..');
+  const engineerDir = path.join(rootDir, 'templates', 'personas', 'engineer');
+
+  if (!await fs.pathExists(engineerDir)) return [];
+
+  const entries = await fs.readdir(engineerDir, { withFileTypes: true });
+  return entries.filter((e) => e.isDirectory()).map((e) => e.name);
+}
+
 const VSCODE_AI_SETTINGS = {
   'chat.instructionsFilesLocations': { '.ai/instructions': true },
   'chat.promptFilesLocations': { '.ai/prompts': true },
@@ -88,6 +100,7 @@ export async function processPersonaAssets(
   const rootDir = __dirname.includes('dist')
     ? path.join(__dirname, '..')
     : path.join(__dirname, '../..');
+  // persona may be a nested path like "engineer/backend"
   const personaDir = path.join(rootDir, 'templates', 'personas', persona);
 
   if (!await fs.pathExists(personaDir)) return;
