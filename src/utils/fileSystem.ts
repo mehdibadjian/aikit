@@ -69,7 +69,9 @@ export async function processAgnosticAssets(
       const skillName = path.basename(skillFile, '.md');
       
       if (tools.includes('copilot')) {
-        const copilotPath = path.join(targetPath, 'copilot-instructions.md');
+        const copilotDir = path.join(targetPath, '.github');
+        await fs.ensureDir(copilotDir);
+        const copilotPath = path.join(copilotDir, 'copilot-instructions.md');
         let existingContent = '';
         if (await fs.pathExists(copilotPath)) {
           existingContent = await fs.readFile(copilotPath, 'utf8');
